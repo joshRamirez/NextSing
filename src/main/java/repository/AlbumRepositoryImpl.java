@@ -18,14 +18,15 @@ public class AlbumRepositoryImpl implements AlbumRepository {
             preparedStatement.setObject(1, albumId);
 
             ResultSet rs = preparedStatement.executeQuery();
-            rs.next();
 
-            return toAlbum(rs);
+            if (rs.next()) {
+                return toAlbum(rs);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        return null;
+        throw new RuntimeException("Album does not exist");
     }
 
     public List<Album> getAlbums() {
@@ -45,7 +46,8 @@ public class AlbumRepositoryImpl implements AlbumRepository {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return null;
+
+        throw new RuntimeException("No albums");
     }
 
     public Album getAlbumByName(String name) {
@@ -57,13 +59,15 @@ public class AlbumRepositoryImpl implements AlbumRepository {
             preparedStatement.setObject(1, name);
 
             ResultSet rs = preparedStatement.executeQuery();
-            rs.next();
 
-            return toAlbum(rs);
+            if (rs.next()) {
+                return toAlbum(rs);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return null;
+
+        throw new RuntimeException("Album does not exist");
     }
 
     private Album toAlbum(ResultSet rs) {
