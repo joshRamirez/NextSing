@@ -43,8 +43,8 @@ public class NextSing {
     }
 
     private static void initializeDatabase() {
-        Util.loadData("/Users/josh/IdeaProjects/nextsing/src/main/resources/ng_singers.txt");
-        Util.loadData("/Users/josh/IdeaProjects/nextsing/src/main/resources/ng_albums.txt");
-        Util.loadData("/Users/josh/IdeaProjects/nextsing/src/main/resources/ng_users.txt");
+        Util.loadData("target/classes/ng_singers.txt");
+        Util.loadData("target/classes/ng_albums.txt");
+        Util.loadData("target/classes/ng_users.txt");
     }
 }
