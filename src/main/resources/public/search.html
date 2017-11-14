@@ -11,6 +11,9 @@
 
     <button onclick="getAlbums()">All Albums</button>
     <button onclick="getSingers()">All Singers</button>
+    <button onclick="getAll()">Both</button>
+
+    <br>
 
     Album
     <select id="album">
@@ -43,22 +46,26 @@ function getAlbum() {
     var dropdown = document.getElementById("album");
     var i = dropdown.selectedIndex;
     var albumId = dropdown.options[i].value;
-    window.location.replace("/albums/singers/" + albumId);
+    window.location.replace("/result/albums/" + albumId + "/singers.html");
 }
 
 function getSinger() {
     var dropdown = document.getElementById("singer");
     var i = dropdown.selectedIndex;
     var singerId = dropdown.options[i].value;
-    window.location.replace("/singers/albums/" + singerId);
+    window.location.replace("/result/singers/" + singerId + "/albums.html");
 }
 
 function getAlbums() {
-    window.location.replace("/result/albums/");
+    window.location.replace("/result/albums.html");
 }
 
 function getSingers() {
-    window.location.replace("/result/singers/");
+    window.location.replace("/result/singers.html");
+}
+
+function getAll() {
+    window.location.replace("/result/albums/singers.html");
 }
 </script>
 </body>

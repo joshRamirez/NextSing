@@ -3,6 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <title>Result</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+        td, th {
+            border: 1px solid #dddddd;
+        }
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+    </style>
 </head>
 <body>
 <table id="table">
@@ -10,17 +21,11 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script>
 var url = window.location.href;
-var length = url.length;
-
-if(url.indexOf("albums") > -1) {
-    $.get("/albums.html", function(data){
-        document.getElementById("table").innerHTML=data;
-    });
-} else {
-    $.get("/singers.html", function(data){
-        document.getElementById("table").innerHTML=data;
-    });
-}
+var i = url.indexOf("/result");
+var start = i + 7;
+$.get(url.substring(start), function(data){
+    document.getElementById("table").innerHTML=data;
+});
 
 function updateAlbumSelect() {
     $.get("/singers/names.html", function(data){
@@ -57,6 +62,7 @@ function getAlbums() {
 function getSingers() {
     window.location.replace("/singers/");
 }
+
 </script>
 </body>
 </html>
