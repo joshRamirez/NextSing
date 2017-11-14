@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import common.Util;
 import model.Album;
+import model.AlbumWithSinger;
 import model.Singer;
 import model.User;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -38,20 +39,16 @@ public class NextSing {
             return getHtml("target/classes/public/index.html");
         });
 
+        get("/result/*", (req, res) -> {
+            return getHtml("target/classes/public/result.html");
+        });
+
         get("/login/", (req, res) -> {
             return getHtml("target/classes/public/index.html");
         });
 
         get("/search/", (req, res) -> {
             return getHtml("target/classes/public/search.html");
-        });
-
-        get("/result/albums/", (req, res) -> {
-            return getHtml("target/classes/public/result.html");
-        });
-
-        get("/result/singers/", (req, res) -> {
-            return getHtml("target/classes/public/result.html");
         });
 
         get("/albums/", (req, res) -> {
@@ -72,16 +69,30 @@ public class NextSing {
             return gson.toJson(databaseRead.getAlbumWithSinger());
         });
 
-        get("/albums/singers/:albumId", (req, res) -> {
+        get("/albums/singers.html", (req, res) -> {
+            return albumWithSingerToHtmlTable(databaseRead.getAlbumWithSinger());
+        });
+
+        get("/albums/:albumId/singers/", (req, res) -> {
             int albumId = Integer.parseInt(req.params("albumId"));
             res.type("application/json");
             return gson.toJson(databaseRead.getAlbumWithSingerByAlbum(albumId));
         });
 
-        get("/singers/albums/:singerId", (req, res) -> {
+        get("/singers/:singerId/albums/", (req, res) -> {
             int singerId = Integer.parseInt(req.params("singerId"));
             res.type("application/json");
             return gson.toJson(databaseRead.getAlbumWithSingerBySinger(singerId));
+        });
+
+        get("/albums/:albumId/singers.html", (req, res) -> {
+            int albumId = Integer.parseInt(req.params("albumId"));
+            return albumWithSingerToHtmlTable(databaseRead.getAlbumWithSingerByAlbum(albumId));
+        });
+
+        get("/singers/:singerId/albums.html", (req, res) -> {
+            int singerId = Integer.parseInt(req.params("singerId"));
+            return albumWithSingerToHtmlTable(databaseRead.getAlbumWithSingerBySinger(singerId));
         });
 
         get("/albums/:albumId", (req, res) -> {
@@ -150,6 +161,17 @@ public class NextSing {
                 }
             }
         });
+    }
+
+    private static String albumWithSingerToHtmlTable(List<AlbumWithSinger> albumWithSingers) {
+        List<String> albumWithSingerHtml = new ArrayList<>();
+        albumWithSingerHtml.add("<tr><th>Album Name</th><th>Record Company</th><th>Release Year</th><th>Singer Name</th><th>Date of Birth</th><th>Sex</th></tr>");
+        for (AlbumWithSinger as : albumWithSingers) {
+            for (Album album : as.getAlbum()) {
+                albumWithSingerHtml.add("<tr><th>" + album.getAlbumName() + "</th><th>" + album.getRecordCompany() + "</th><th>" + album.getReleaseYear() + "</th><th>" + as.getSinger().getName() + "</th><th>" + as.getSinger().getDateOfBirth() + "</th><th>" + as.getSinger().getSex() + "</th></tr>");
+            }
+        }
+        return String.join("", albumWithSingerHtml);
     }
 
     private static String singersToHtmlTable(List<Singer> singers) {

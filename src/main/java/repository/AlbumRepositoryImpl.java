@@ -2,18 +2,21 @@ package repository;
 
 import model.Album;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static repository.NextSingDatabase.getConn;
+
 public class AlbumRepositoryImpl implements AlbumRepository {
     public List<Album> getAlbums() {
         String sql = "SELECT * FROM ng_albums";
 
-        try {
-            PreparedStatement preparedStatement = NextSingDatabase.getConn().prepareStatement(sql);
+        try (Connection conn = getConn()){
+            PreparedStatement preparedStatement = conn.prepareStatement(sql);
 
             ResultSet rs = preparedStatement.executeQuery();
             List albums = new ArrayList();
@@ -35,7 +38,7 @@ public class AlbumRepositoryImpl implements AlbumRepository {
                 "WHERE ng_albums_id = ?";
 
         try {
-            PreparedStatement preparedStatement = NextSingDatabase.getConn().prepareStatement(sql);
+            PreparedStatement preparedStatement = getConn().prepareStatement(sql);
             preparedStatement.setObject(1, albumId);
 
             ResultSet rs = preparedStatement.executeQuery();
@@ -55,7 +58,7 @@ public class AlbumRepositoryImpl implements AlbumRepository {
                 "WHERE album_name = ?";
 
         try {
-            PreparedStatement preparedStatement = NextSingDatabase.getConn().prepareStatement(sql);
+            PreparedStatement preparedStatement = getConn().prepareStatement(sql);
             preparedStatement.setObject(1, name);
 
             ResultSet rs = preparedStatement.executeQuery();
@@ -77,7 +80,7 @@ public class AlbumRepositoryImpl implements AlbumRepository {
 
         List albums = new ArrayList();
         try {
-            PreparedStatement preparedStatement = NextSingDatabase.getConn().prepareStatement(sql);
+            PreparedStatement preparedStatement = getConn().prepareStatement(sql);
             preparedStatement.setObject(1, singerId);
 
             ResultSet rs = preparedStatement.executeQuery();

@@ -75,21 +75,26 @@ public class ReadAdapter extends Adapter {
         return albumSinger;
     }
 
-    public AlbumWithSinger getAlbumWithSingerByAlbum(int albumId) {
+    public List<AlbumWithSinger> getAlbumWithSingerByAlbum(int albumId) {
         Album album = albumRepository.getAlbum(albumId);
         Singer singer;
+        List albumWithSinger = new ArrayList();
         if (singerCache.isCached()) {
             singer = singerCache.getSingerCache().get(album.getSingerId());
         } else {
             singer = singerRepository.getSinger(album.getSingerId());
         }
-        return new AlbumWithSinger(album, singer);
+        albumWithSinger.add(new AlbumWithSinger(album, singer));
+
+        return albumWithSinger;
     }
 
-    public AlbumWithSinger getAlbumWithSingerBySinger(int singerId) {
+    public List<AlbumWithSinger> getAlbumWithSingerBySinger(int singerId) {
         Singer singer = singerRepository.getSinger(singerId);
         List<Album> albums = albumRepository.getAlbumsBySinger(singerId);
+        List albumWithSinger = new ArrayList();
+        albumWithSinger.add(new AlbumWithSinger(albums, singer));
 
-        return new AlbumWithSinger(albums, singer);
+        return albumWithSinger;
     }
 }
