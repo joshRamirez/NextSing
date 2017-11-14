@@ -9,26 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AlbumRepositoryImpl implements AlbumRepository {
-    public Album getAlbum(int albumId) {
-        String sql = "SELECT * FROM ng_albums " +
-                "WHERE ng_albums_id = ?";
-
-        try {
-            PreparedStatement preparedStatement = NextSingDatabase.getConn().prepareStatement(sql);
-            preparedStatement.setObject(1, albumId);
-
-            ResultSet rs = preparedStatement.executeQuery();
-
-            if (rs.next()) {
-                return toAlbum(rs);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        throw new RuntimeException("Album does not exist");
-    }
-
     public List<Album> getAlbums() {
         String sql = "SELECT * FROM ng_albums";
 
@@ -50,6 +30,26 @@ public class AlbumRepositoryImpl implements AlbumRepository {
         throw new RuntimeException("No albums");
     }
 
+    public Album getAlbum(int albumId) {
+        String sql = "SELECT * FROM ng_albums " +
+                "WHERE ng_albums_id = ?";
+
+        try {
+            PreparedStatement preparedStatement = NextSingDatabase.getConn().prepareStatement(sql);
+            preparedStatement.setObject(1, albumId);
+
+            ResultSet rs = preparedStatement.executeQuery();
+
+            if (rs.next()) {
+                return toAlbum(rs);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        throw new RuntimeException("Album does not exist");
+    }
+
     public Album getAlbumByName(String name) {
         String sql = "SELECT * FROM ng_albums " +
                 "WHERE album_name = ?";
@@ -68,6 +68,30 @@ public class AlbumRepositoryImpl implements AlbumRepository {
         }
 
         throw new RuntimeException("Album does not exist");
+    }
+
+    @Override
+    public List<Album> getAlbumsBySinger(int singerId) {
+        String sql = "SELECT * FROM ng_albums " +
+                "WHERE ng_singers_id = ?";
+
+        List albums = new ArrayList();
+        try {
+            PreparedStatement preparedStatement = NextSingDatabase.getConn().prepareStatement(sql);
+            preparedStatement.setObject(1, singerId);
+
+            ResultSet rs = preparedStatement.executeQuery();
+
+
+            while (rs.next()) {
+                albums.add(toAlbum(rs));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return albums;
     }
 
     private Album toAlbum(ResultSet rs) {

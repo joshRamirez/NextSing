@@ -31,13 +31,34 @@ public class SingerRepositoryImpl implements SingerRepository {
         throw new RuntimeException("No singers");
     }
 
+    @Override
+    public Singer getSinger(int singerId) {
+        String sql = "SELECT * FROM ng_singers " +
+                "WHERE ng_singers_id = ?";
+
+        try {
+            PreparedStatement preparedStatement = NextSingDatabase.getConn().prepareStatement(sql);
+            preparedStatement.setObject(1, singerId);
+
+            ResultSet rs = preparedStatement.executeQuery();
+
+            if (rs.next()) {
+                return toSinger(rs);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        throw new RuntimeException("Singer does not exist");
+    }
+
     private Singer toSinger(ResultSet rs) {
         Singer singer = new Singer();
 
         try {
             singer.setSingerId(rs.getInt(1));
-            singer.setDateOfBirth(rs.getString(2));
-            singer.setName(rs.getString(3));
+            singer.setName(rs.getString(2));
+            singer.setDateOfBirth(rs.getString(3));
             singer.setSex(rs.getString(4));
         } catch (SQLException e) {
             e.printStackTrace();

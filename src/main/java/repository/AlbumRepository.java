@@ -5,9 +5,11 @@ import model.Album;
 import java.util.List;
 
 public interface AlbumRepository {
-    public Album getAlbum(int albumId);
+    Album getAlbum(int albumId);
 
-    public List<Album> getAlbums();
+    List<Album> getAlbums();
 
-    public Album getAlbumByName(String name);
+    Album getAlbumByName(String name);
+
+    List<Album> getAlbumsBySinger(int singerId);
 }

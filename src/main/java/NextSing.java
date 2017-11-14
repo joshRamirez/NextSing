@@ -1,40 +1,208 @@
+import adapter.MiscAdapter;
 import adapter.ReadAdapter;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.google.gson.GsonBuilder;
+import common.Util;
 import model.Album;
+import model.Singer;
+import model.User;
+import org.apache.commons.codec.digest.DigestUtils;
 import repository.*;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
-import static spark.Spark.get;
-import static spark.Spark.post;
+import static spark.Spark.*;
 
 public class NextSing {
     public static void main(String[] args) {
         AlbumRepository albumRepository = new AlbumRepositoryImpl();
         SingerRepository singerRepository = new SingerRepositoryImpl();
         UserRepository userRepository = new UserRepositoryImpl();
+        SessionRepository sessionRepository = new SessionRepositoryImpl();
 
-        ReadAdapter databaseRead = new ReadAdapter(albumRepository, singerRepository, userRepository);
+        ReadAdapter databaseRead = new ReadAdapter(albumRepository, singerRepository, userRepository, sessionRepository);
+        MiscAdapter databaseMisc = new MiscAdapter(albumRepository, singerRepository, userRepository, sessionRepository);
 
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
         if (isDatabaseSetUp(databaseRead)) {
             initializeDatabase();
         }
 
+        databaseRead.initializeSingers();
+
+        get("/", (req, res) -> {
+            return getHtml("target/classes/public/index.html");
+        });
+
+        get("/login/", (req, res) -> {
+            return getHtml("target/classes/public/index.html");
+        });
+
+        get("/search/", (req, res) -> {
+            return getHtml("target/classes/public/search.html");
+        });
+
+        get("/result/albums/", (req, res) -> {
+            return getHtml("target/classes/public/result.html");
+        });
+
+        get("/result/singers/", (req, res) -> {
+            return getHtml("target/classes/public/result.html");
+        });
+
         get("/albums/", (req, res) -> {
-            return new Gson().toJson(databaseRead.getAlbums());
+            res.type("application/json");
+            return gson.toJson(databaseRead.getAlbums());
+        });
+
+        get("/albums.html", (req, res) -> {
+            return albumsToHtmlTable(databaseRead.getAlbums());
+        });
+
+        get("/albums/names.html", (req, res) -> {
+            return albumsToHtml(databaseRead.getAlbums());
+        });
+
+        get("/albums/singers/", (req, res) -> {
+            res.type("application/json");
+            return gson.toJson(databaseRead.getAlbumWithSinger());
+        });
+
+        get("/albums/singers/:albumId", (req, res) -> {
+            int albumId = Integer.parseInt(req.params("albumId"));
+            res.type("application/json");
+            return gson.toJson(databaseRead.getAlbumWithSingerByAlbum(albumId));
+        });
+
+        get("/singers/albums/:singerId", (req, res) -> {
+            int singerId = Integer.parseInt(req.params("singerId"));
+            res.type("application/json");
+            return gson.toJson(databaseRead.getAlbumWithSingerBySinger(singerId));
+        });
+
+        get("/albums/:albumId", (req, res) -> {
+            int albumId = Integer.parseInt(req.params("albumId"));
+            res.type("application/json");
+            return gson.toJson(databaseRead.getAlbum(albumId));
+        });
+
+        get("/singers/", (req, res) -> {
+            res.type("application/json");
+            return gson.toJson(databaseRead.getSingers());
+        });
+
+        get("/singers.html", (req, res) -> {
+            return singersToHtmlTable(databaseRead.getSingers());
+        });
+
+        get("/singers/names.html", (req, res) -> {
+            return singersToHtml(databaseRead.getSingers());
+        });
+
+        get("/singers/:singerId", (req, res) -> {
+            int singerId = Integer.parseInt(req.params("singerId"));
+            res.type("application/json");
+            return gson.toJson(databaseRead.getSinger(singerId));
+        });
+
+        get("/users/", (req, res) -> {
+            res.type("application/json");
+            return gson.toJson(databaseRead.getUsers());
+        });
+
+        get("/users/:userId", (req, res) -> {
+            int userId = Integer.parseInt(req.params("userId"));
+            res.type("application/json");
+            return gson.toJson(databaseRead.getUser(userId));
+        });
+
+        post("/login/", (req, res) -> {
+            User user = toUser(req.body());
+
+            if (databaseRead.isUser(user)) {
+                databaseMisc.signInUser(user, req.session().id());
+
+                res.redirect("/search/");
+            } else {
+                res.redirect("/login/");
+            }
+
+            return "Try Again";
         });
 
         post("/albums/", (req, res) -> {
-            List<Album> test = new Gson().fromJson("[{\"albumId\":187,\"singerId\":102,\"albumName\":\"BAD\",\"releaseYear\":\"1980\",\"recordCompany\":\"MOTOWN RECORD CORP\"},{\"albumId\":188,\"singerId\":103,\"albumName\":\"BROWNIE\",\"releaseYear\":\"1956\",\"recordCompany\":\"MOTOWN RECORD CORP\"},{\"albumId\":189,\"singerId\":104,\"albumName\":\"A MAJOR\",\"releaseYear\":\"2001\",\"recordCompany\":\"MOTOWN RECORD CORP\"},{\"albumId\":190,\"singerId\":105,\"albumName\":\"FIRST TIME\",\"releaseYear\":\"1999\",\"recordCompany\":\"WARNER BROS. RECORDS\"},{\"albumId\":191,\"singerId\":106,\"albumName\":\"MY HEART\",\"releaseYear\":\"1997\",\"recordCompany\":\"EPIC RECORDS\"},{\"albumId\":192,\"singerId\":107,\"albumName\":\"DO IT LIKE\",\"releaseYear\":\"1985\",\"recordCompany\":\"CAPITOL RECORDS\"},{\"albumId\":193,\"singerId\":108,\"albumName\":\"I WONDER\",\"releaseYear\":\"1978\",\"recordCompany\":\"MOTOWN RECORD CORP\"},{\"albumId\":194,\"singerId\":109,\"albumName\":\"AMERICA\",\"releaseYear\":\"2005\",\"recordCompany\":\"COLUMBIA RECORDS\"},{\"albumId\":195,\"singerId\":110,\"albumName\":\"REPLACE\",\"releaseYear\":\"2010\",\"recordCompany\":\"ATLANTIC RECORDS\"},{\"albumId\":196,\"singerId\":111,\"albumName\":\"WILSON\",\"releaseYear\":\"2000\",\"recordCompany\":\"INTERSCOPE RECORDS\"},{\"albumId\":197,\"singerId\":102,\"albumName\":\"BEAT IT\",\"releaseYear\":\"1982\",\"recordCompany\":\"MOTOWN RECORD CORP\"},{\"albumId\":198,\"singerId\":103,\"albumName\":\"JIMMY\",\"releaseYear\":\"1960\",\"recordCompany\":\"MOTOWN RECORD CORP\"},{\"albumId\":199,\"singerId\":104,\"albumName\":\"B MAJOR\",\"releaseYear\":\"2002\",\"recordCompany\":\"COLUMBIA RECORDS\"},{\"albumId\":200,\"singerId\":105,\"albumName\":\"ONE MORE\",\"releaseYear\":\"2003\",\"recordCompany\":\"WARNER BROS. RECORDS\"},{\"albumId\":201,\"singerId\":106,\"albumName\":\"WILL GO ON\",\"releaseYear\":\"1998\",\"recordCompany\":\"UNIVERSAL RECORDS\"},{\"albumId\":202,\"singerId\":107,\"albumName\":\"MICKIE\",\"releaseYear\":\"1989\",\"recordCompany\":\"EPIC RECORDS\"},{\"albumId\":203,\"singerId\":108,\"albumName\":\"STEPHEN\",\"releaseYear\":\"1979\",\"recordCompany\":\"MOTOWN RECORDS CORP\"},{\"albumId\":204,\"singerId\":109,\"albumName\":\"GOD BLESS\",\"releaseYear\":\"2007\",\"recordCompany\":\"CAPITAL RECORDS\"},{\"albumId\":205,\"singerId\":110,\"albumName\":\"IRREPALCE\",\"releaseYear\":\"2004\",\"recordCompany\":\"COLUMBIA RECORDS\"},{\"albumId\":206,\"singerId\":111,\"albumName\":\"HIGH SCHOOL\",\"releaseYear\":\"2002\",\"recordCompany\":\"ATLANTIC RECORDS\"},{\"albumId\":207,\"singerId\":102,\"albumName\":\"BLACK OR WHITE\",\"releaseYear\":\"1998\",\"recordCompany\":\"INTERSCOPE RECORDS\"},{\"albumId\":208,\"singerId\":103,\"albumName\":\"JAMES BROWN\",\"releaseYear\":\"1970\",\"recordCompany\":\"MOTOWN RECORD CORP\"},{\"albumId\":209,\"singerId\":104,\"albumName\":\"C MAJOR\",\"releaseYear\":\"2005\",\"recordCompany\":\"MOTOWN RECORD CORP\"},{\"albumId\":210,\"singerId\":105,\"albumName\":\"I\\u0027M BACK\",\"releaseYear\":\"2005\",\"recordCompany\":\"COLUMBIA RECORDS\"},{\"albumId\":211,\"singerId\":106,\"albumName\":\"PRAYER\",\"releaseYear\":\"1998\",\"recordCompany\":\"WARNER BROS. RECORDS\"},{\"albumId\":212,\"singerId\":107,\"albumName\":\"MICK JAGGER\",\"releaseYear\":\"1990\",\"recordCompany\":\"UNIVERSAL RECORDS\"},{\"albumId\":213,\"singerId\":108,\"albumName\":\"WONDERFUL\",\"releaseYear\":\"1984\",\"recordCompany\":\"EPIC RECORDS\"},{\"albumId\":214,\"singerId\":109,\"albumName\":\"U.S.A.\",\"releaseYear\":\"2009\",\"recordCompany\":\"MOTOWN RECORDS CORP\"},{\"albumId\":215,\"singerId\":110,\"albumName\":\"TO THE LEFT\",\"releaseYear\":\"2010\",\"recordCompany\":\"CAPITAL RECORDS\"},{\"albumId\":216,\"singerId\":111,\"albumName\":\"WILDCATS\",\"releaseYear\":\"2011\",\"recordCompany\":\"MOTOWN RECORDS CORP\"}]",
-                    new TypeToken<List<Album>>() {
-                    }.getType());
             return "success";
         });
 
-        System.out.println(databaseRead.getAlbums().toString());
-        System.out.println(databaseRead.getAlbumByName("ONE MORE"));
+        before((req, res) -> {
+            System.out.println(req.pathInfo());
+        });
 
+        before((req, res) -> {
+            if (!(req.pathInfo().equals("/login/") ^ req.pathInfo().equals("/"))) {
+                if (!databaseMisc.validateUser(req.session().id())) {
+                    res.redirect("/login/");
+                    halt();
+                }
+            }
+        });
+    }
+
+    private static String singersToHtmlTable(List<Singer> singers) {
+        List<String> singerHtml = new ArrayList<>();
+        singerHtml.add("<tr><th>Name</th><th>Date of Birth</th><th>Sex</th></tr>");
+        for (Singer singer : singers) {
+            singerHtml.add("<tr><th>" + singer.getName() + "</th><th>" + singer.getDateOfBirth() + "</th><th>" + singer.getSex() + "</th></tr>");
+        }
+        return String.join("", singerHtml);
+    }
+
+    private static String albumsToHtmlTable(List<Album> albums) {
+        List<String> albumHtml = new ArrayList<>();
+        albumHtml.add("<tr><th>Name</th><th>Record Company</th><th>Release Year</th></tr>");
+        for (Album album : albums) {
+            albumHtml.add("<tr><th>" + album.getAlbumName() + "</th><th>" + album.getRecordCompany() + "</th><th>" + album.getReleaseYear() + "</th></tr>");
+        }
+        return String.join("", albumHtml);
+    }
+
+    private static String singersToHtml(List<Singer> singers) {
+        List<String> singerHtml = new ArrayList<>();
+        for (Singer singer : singers) {
+            singerHtml.add("<option value=\"" + singer.getSingerId() + "\">" + singer.getName() + "</option>");
+        }
+        return String.join("", singerHtml);
+    }
+
+    private static String albumsToHtml(List<Album> albums) {
+        List<String> albumHtml = new ArrayList<>();
+        for (Album album : albums) {
+            albumHtml.add("<option value=\"" + album.getAlbumId() + "\">" + album.getAlbumName() + "</option>");
+        }
+        return String.join("", albumHtml);
+    }
+
+    private static String getHtml(String htmlFile) {
+        List<String> fileLines = new ArrayList<>();
+        try {
+            fileLines = Files.readAllLines(Paths.get(htmlFile));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return String.join("", fileLines);
+    }
+
+    private static User toUser(String body) {
+        String[] credentialList = body.split("&");
+        User user = new User();
+        user.setUsername(credentialList[0].split("=")[1]);
+        user.setPassword(DigestUtils.sha256Hex(credentialList[1].split("=")[1]));
+
+        return user;
     }
 
     private static boolean isDatabaseSetUp(ReadAdapter databaseRead) {
