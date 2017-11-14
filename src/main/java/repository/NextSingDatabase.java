@@ -10,12 +10,13 @@ public class NextSingDatabase {
             Class.forName("org.postgresql.Driver");
 
             final String HOST = System.getenv("HOST");
-            final String PORT = System.getenv("PORT");
             final String DATABASE = System.getenv("DATABASE");
             final String USER = System.getenv("USER");
             final String PASS = System.getenv("PASS");
 
-            String dbUrl = String.format("jdbc:postgresql://%s:%s/%s", HOST, PORT, DATABASE);
+            final String sslString = "?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory";
+
+            String dbUrl = String.format("jdbc:postgresql://%s/%s%s", HOST, DATABASE, sslString);
 
             return DriverManager.getConnection(dbUrl, USER, PASS);
         } catch (SQLException se) {

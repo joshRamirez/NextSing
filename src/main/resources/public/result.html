@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Result</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+        td, th {
+            border: 1px solid #dddddd;
+        }
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+    </style>
+</head>
+<body>
+<table id="table">
+</table>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script>
+var url = window.location.href;
+var i = url.indexOf("/result");
+var start = i + 7;
+$.get(url.substring(start), function(data){
+    document.getElementById("table").innerHTML=data;
+});
+
+function updateAlbumSelect() {
+    $.get("/singers/names.html", function(data){
+        document.getElementById("singer").innerHTML=data;
+    });
+}
+//updateAlbumSelect();
+
+function updateSingerSelect() {
+    $.get("/singers/names.html", function(data){
+        document.getElementById("singer").innerHTML=data;
+    });
+}
+//updateSingerSelect();
+
+function getAlbum() {
+    var dropdown = document.getElementById("album");
+    var i = dropdown.selectedIndex;
+    var albumId = dropdown.options[i].value;
+    window.location.replace("/albums/singers/" + albumId);
+}
+
+function getSinger() {
+    var dropdown = document.getElementById("singer");
+    var i = dropdown.selectedIndex;
+    var singerId = dropdown.options[i].value;
+    window.location.replace("/singers/albums/" + singerId);
+}
+
+function getAlbums() {
+    window.location.replace("/albums/");
+}
+
+function getSingers() {
+    window.location.replace("/singers/");
+}
+
+</script>
+</body>
+</html>

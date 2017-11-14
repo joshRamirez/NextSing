@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search</title>
+</head>
+<body>
+<h1>Search By:</h1>
+<div>
+    <p id="demo"></p>
+
+    <button onclick="getAlbums()">All Albums</button>
+    <button onclick="getSingers()">All Singers</button>
+    <button onclick="getAll()">Both</button>
+
+    <br>
+
+    Album
+    <select id="album">
+    </select>
+    <button onclick="getAlbum()">View Info</button>
+</div>
+<div>
+    Singer
+    <select id="singer">
+    </select>
+    <button onclick="getSinger()">View Info</button>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script>
+function updateAlbumSelect() {
+    $.get("/albums/names.html", function(data){
+        document.getElementById("album").innerHTML=data;
+    });
+}
+updateAlbumSelect();
+
+function updateSingerSelect() {
+    $.get("/singers/names.html", function(data){
+        document.getElementById("singer").innerHTML=data;
+    });
+}
+updateSingerSelect();
+
+function getAlbum() {
+    var dropdown = document.getElementById("album");
+    var i = dropdown.selectedIndex;
+    var albumId = dropdown.options[i].value;
+    window.location.replace("/result/albums/" + albumId + "/singers.html");
+}
+
+function getSinger() {
+    var dropdown = document.getElementById("singer");
+    var i = dropdown.selectedIndex;
+    var singerId = dropdown.options[i].value;
+    window.location.replace("/result/singers/" + singerId + "/albums.html");
+}
+
+function getAlbums() {
+    window.location.replace("/result/albums.html");
+}
+
+function getSingers() {
+    window.location.replace("/result/singers.html");
+}
+
+function getAll() {
+    window.location.replace("/result/albums/singers.html");
+}
+</script>
+</body>
+</html>

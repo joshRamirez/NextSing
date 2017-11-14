@@ -1,3 +1,6 @@
+package common;
+
+import org.apache.commons.codec.digest.DigestUtils;
 import repository.NextSingDatabase;
 
 import java.io.File;
@@ -39,7 +42,11 @@ public class Util {
             try {
                 PreparedStatement preparedStatement = NextSingDatabase.getConn().prepareStatement(sql);
                 for (int i = 0; i < albumData.length; i++) {
-                    preparedStatement.setObject(i + 1, albumData[i].trim());
+                    if (path.contains("ng_users") && i == 1) {
+                        preparedStatement.setObject(i + 1, DigestUtils.sha256Hex(albumData[i].trim()));
+                    } else {
+                        preparedStatement.setObject(i + 1, albumData[i].trim());
+                    }
                 }
 
                 preparedStatement.execute();
